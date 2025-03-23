@@ -1,0 +1,59 @@
+<div class="auth-container">
+  <h2 class="text-center mb-4">Sign In</h2>
+
+  <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <%= success_msg %>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+  <% } %> <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <%= error_msg %>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+  <% } %>
+
+  <form action="/auth/signin" method="POST">
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input
+        type="email"
+        class="form-control"
+        id="email"
+        name="email"
+        required
+      />
+      <% if (typeof errors !== 'undefined' && errors.email) { %>
+      <div class="error-message"><%= errors.email %></div>
+      <% } %>
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input
+        type="password"
+        class="form-control"
+        id="password"
+        name="password"
+        required
+      />
+      <% if (typeof errors !== 'undefined' && errors.password) { %>
+      <div class="error-message"><%= errors.password %></div>
+      <% } %>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Sign In</button>
+  </form>
+  <div class="text-center mt-3">
+    <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+    <p><a href="/forgot-password">Forgot Password?</a></p>
+  </div>
+</div>

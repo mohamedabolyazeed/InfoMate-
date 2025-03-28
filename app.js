@@ -7,6 +7,11 @@ const session = require("express-session");
 const flash = require("connect-flash");
 const auth = require("./backend/middleware/auth");
 
+// Environment variables
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://mohamedaboelyazeed920:H1iPPlJG9GeOzcwN@cluster0.lbwsy.mongodb.net/InfoMate?retryWrites=true&w=majority&appName=Cluster0";
+const SESSION_SECRET = process.env.SESSION_SECRET || "your-super-secret-key-change-this-in-production";
+const NODE_ENV = process.env.NODE_ENV || "development";
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -18,11 +23,11 @@ app.set("layout", "layouts/main");
 // Session middleware
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-secret-key",
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
@@ -94,12 +99,17 @@ app.use("/", profileRoutes);
 
 // MongoDB connection
 mongoose
-  .connect(
-    "mongodb+srv://mohamedaboelyazeed920:H1iPPlJG9GeOzcwN@cluster0.lbwsy.mongodb.net/InfoMate?retryWrites=true&w=majority&appName=Cluster0"
-  )
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    heartbeatFrequencyMS: 2000,
+  })
   .then(() => {
+    console.log("Connected to MongoDB");
     app.listen(port, () => {
-      console.log(`Server is running on http://localhost:${port}`);
+      console.log(`Server is running on port ${port}`);
     });
   })
   .catch((err) => {

@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
   },
   profilePhoto: {
     type: String,
-    default: '/img/default-avatar.png'
+    default: "/img/default-avatar.png",
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
@@ -68,7 +68,6 @@ userSchema.methods.updateLastLogin = async function () {
 };
 
 // Create indexes for better query performance
-userSchema.index({ email: 1 });
 userSchema.index({ createdAt: 1 });
 
 module.exports = mongoose.model("User", userSchema);

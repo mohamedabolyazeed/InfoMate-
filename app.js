@@ -48,6 +48,7 @@ app.use(methodOverride("_method"));
 const allRoutes = require("./backend/routes/allRoutes");
 const addUserRoute = require("./backend/routes/addUser");
 const authRoutes = require("./backend/routes/authRoutes");
+const profileRoutes = require("./backend/routes/profileRoutes");
 
 // Auto refresh
 const path = require("path");
@@ -89,6 +90,7 @@ app.get("/logout", auth, (req, res) => {
 app.use(allRoutes);
 app.use(addUserRoute);
 app.use("/auth", authRoutes);
+app.use("/", profileRoutes);
 
 // MongoDB connection
 mongoose

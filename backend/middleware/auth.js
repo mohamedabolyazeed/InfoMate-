@@ -8,8 +8,8 @@ const auth = async (req, res, next) => {
       const user = await User.findById(req.session.user.id);
       if (!user || !user.isActive) {
         req.session.destroy();
-        req.flash('error_msg', 'Your account is inactive or has been deleted');
-        return res.redirect('/signin');
+        req.flash("error_msg", "Your account is inactive or has been deleted");
+        return res.redirect("/signin");
       }
       req.user = user;
       return next();
@@ -19,7 +19,7 @@ const auth = async (req, res, next) => {
     const token = req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      req.flash('error_msg', 'Please sign in to access this page');
+      req.flash("error_msg", "Please sign in to access this page");
       return res.redirect("/signin");
     }
 
@@ -30,13 +30,13 @@ const auth = async (req, res, next) => {
     const user = await User.findById(decoded.userId);
 
     if (!user || !user.isActive) {
-      req.flash('error_msg', 'Your account is inactive or has been deleted');
+      req.flash("error_msg", "Your account is inactive or has been deleted");
       return res.redirect("/signin");
     }
 
-    // Set user in session
+    // Set user in session with the correct ID format
     req.session.user = {
-      id: user._id,
+      id: user._id.toString(), // Convert ObjectId to string
       name: user.name,
       email: user.email,
     };
@@ -44,8 +44,8 @@ const auth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
-    req.flash('error_msg', 'Authentication failed. Please sign in again.');
+    console.error("Auth middleware error:", error);
+    req.flash("error_msg", "Authentication failed. Please sign in again.");
     res.redirect("/signin");
   }
 };

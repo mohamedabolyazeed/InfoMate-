@@ -41,6 +41,7 @@
           action="/user/add.html"
           method="post"
           class="mx-0 row gx-3 gy-4 mt-3"
+          onsubmit="return validateForm()"
         >
           <% if (typeof error !== 'undefined' && error) { %>
             <div class="alert alert-danger" role="alert">
@@ -55,6 +56,7 @@
               type="text"
               class="form-control"
               id="inputfirstName4"
+              required
               value="<%= typeof formData !== 'undefined' && formData.fireName ? formData.fireName : '' %>"
             />
           </div>
@@ -66,6 +68,7 @@
               type="text"
               class="form-control"
               id="inputlastName4"
+              required
               value="<%= typeof formData !== 'undefined' && formData.lastName ? formData.lastName : '' %>"
             />
           </div>
@@ -78,6 +81,7 @@
               type="email"
               class="form-control"
               id="inputemail4"
+              required
               value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
             />
           </div>
@@ -86,9 +90,11 @@
             <input
               name="phoneNumber"
               placeholder="011987899"
-              type="number"
+              type="tel"
               class="form-control"
               id="inputtele4"
+              required
+              pattern="[0-9]{10,}"
               value="<%= typeof formData !== 'undefined' && formData.phoneNumber ? formData.phoneNumber : '' %>"
             />
           </div>
@@ -102,6 +108,9 @@
                 type="number"
                 class="form-control"
                 id="inputage4"
+                required
+                min="0"
+                max="150"
                 value="<%= typeof formData !== 'undefined' && formData.age ? formData.age : '' %>"
               />
             </div>
@@ -110,8 +119,8 @@
           <div>
             <div class="col-md-6">
               <label for="inputCountry" class="form-label">Country:</label>
-              <select name="country" id="inputCountry" class="form-select">
-                <option selected hidden disabled>Choose here ...</option>
+              <select name="country" id="inputCountry" class="form-select" required>
+                <option value="" selected hidden disabled>Choose here ...</option>
                 <% var country_list = [
                   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Anguilla", "Antigua & Barbuda",
                   "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain",
@@ -153,8 +162,8 @@
           <div>
             <div class="col-md-6">
               <label for="inputGender" class="form-label">Gender:</label>
-              <select name="gender" id="inputGender" class="form-select">
-                <option selected hidden disabled>Choose here ...</option>
+              <select name="gender" id="inputGender" class="form-select" required>
+                <option value="" selected hidden disabled>Choose here ...</option>
                 <option <%= typeof formData !== 'undefined' && formData.gender === 'Male' ? 'selected' : '' %>>Male</option>
                 <option <%= typeof formData !== 'undefined' && formData.gender === 'Female' ? 'selected' : '' %>>Female</option>
               </select>
@@ -171,5 +180,15 @@
 
     <script src="../js/sidebars.js"></script>
     <script src="../js/main.js"></script>
+    <script>
+      function validateForm() {
+        const age = document.getElementById('inputage4').value;
+        if (age < 0 || age > 150) {
+          alert('Age must be between 0 and 150');
+          return false;
+        }
+        return true;
+      }
+    </script>
   </body>
 </html>

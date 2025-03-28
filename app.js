@@ -8,8 +8,12 @@ const flash = require("connect-flash");
 const auth = require("./backend/middleware/auth");
 
 // Environment variables
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://mohamedaboelyazeed920:H1iPPlJG9GeOzcwN@cluster0.lbwsy.mongodb.net/InfoMate?retryWrites=true&w=majority&appName=Cluster0";
-const SESSION_SECRET = process.env.SESSION_SECRET || "your-super-secret-key-change-this-in-production";
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  "mongodb+srv://mohamedaboelyazeed920:H1iPPlJG9GeOzcwN@cluster0.lbwsy.mongodb.net/InfoMate?retryWrites=true&w=majority&appName=Cluster0";
+const SESSION_SECRET =
+  process.env.SESSION_SECRET ||
+  "your-super-secret-key-change-this-in-production";
 const NODE_ENV = process.env.NODE_ENV || "development";
 
 // Middleware
@@ -55,20 +59,22 @@ const addUserRoute = require("./backend/routes/addUser");
 const authRoutes = require("./backend/routes/authRoutes");
 const profileRoutes = require("./backend/routes/profileRoutes");
 
-// Auto refresh
-const path = require("path");
-const livereload = require("livereload");
-const liveReloadServer = livereload.createServer();
-liveReloadServer.watch(path.join(__dirname, "public"));
+// Auto refresh (development only)
+if (NODE_ENV === "development") {
+  const path = require("path");
+  const livereload = require("livereload");
+  const liveReloadServer = livereload.createServer();
+  liveReloadServer.watch(path.join(__dirname, "public"));
 
-const connectLivereload = require("connect-livereload");
-app.use(connectLivereload());
+  const connectLivereload = require("connect-livereload");
+  app.use(connectLivereload());
 
-liveReloadServer.server.once("connection", () => {
-  setTimeout(() => {
-    liveReloadServer.refresh("/");
-  }, 100);
-});
+  liveReloadServer.server.once("connection", () => {
+    setTimeout(() => {
+      liveReloadServer.refresh("/");
+    }, 100);
+  });
+}
 
 // Auth routes for views (public routes)
 app.get("/signup", (req, res) => res.render("auth/signup"));
@@ -100,11 +106,11 @@ app.use("/", profileRoutes);
 // MongoDB connection
 mongoose
   .connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
     heartbeatFrequencyMS: 2000,
+    maxPoolSize: 10,
+    minPoolSize: 5,
   })
   .then(() => {
     console.log("Connected to MongoDB");

@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  role: {
+    type: String,
+    default: "user",
+  },
 });
 
 // Hash password before saving

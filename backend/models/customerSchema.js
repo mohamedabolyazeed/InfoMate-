@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 // define the Schema (the structure of the article)
-const userSchema = new Schema(
+const customerSchema = new Schema(
   {
     fireName: {
       type: String,
@@ -54,7 +54,7 @@ const userSchema = new Schema(
 );
 
 // Create a model based on that schema
-const User = mongoose.model("customer", userSchema);
+const Customer = mongoose.model("customer", customerSchema);
 
 // export the model
-module.exports = User;
+module.exports = Customer;

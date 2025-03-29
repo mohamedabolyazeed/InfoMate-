@@ -1,28 +1,6 @@
-const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-
-// User Schema
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: { type: String, unique: true },
-  password: String,
-  createdAt: { type: Date, default: Date.now },
-  isActive: { type: Boolean, default: true },
-  role: { type: String, default: "user" },
-  lastLogin: Date,
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
-});
-
-// Data Schema
-const dataSchema = new mongoose.Schema({
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
-
-// Create models
-const User = mongoose.model("User", userSchema);
-const Data = mongoose.model("Data", dataSchema);
+const User = require("../models/User");
+const Data = require("../models/Data");
 
 // Helper functions for user operations
 const userHelpers = {

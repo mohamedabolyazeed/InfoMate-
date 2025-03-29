@@ -1,78 +1,59 @@
-const { MongoClient } = require("mongodb");
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-const uri =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://mohamedaboelyazeed920:H1iPPlJG9GeOzcwN@cluster0.lbwsy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
-const client = new MongoClient(uri, {
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
-  connectTimeoutMS: 10000, // Give up initial connection after 10s
-  maxPoolSize: 10,
-  minPoolSize: 5,
+// User Schema
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+  createdAt: { type: Date, default: Date.now },
+  isActive: { type: Boolean, default: true },
+  role: { type: String, default: "user" },
+  lastLogin: Date,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
 });
 
-async function connectDB() {
-  try {
-    await client.connect();
-    console.log("Connected to MongoDB");
-    return client.db("InfoMate");
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    // Don't exit the process, let the application handle the error
-    throw error;
-  }
-}
+// Data Schema
+const dataSchema = new mongoose.Schema({
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+// Create models
+const User = mongoose.model("User", userSchema);
+const Data = mongoose.model("Data", dataSchema);
 
 // Helper functions for user operations
 const userHelpers = {
   async createUser(userData) {
-    const db = await connectDB();
-    const users = db.collection("users");
-
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-    const user = {
+    const user = new User({
       name: userData.name,
       email: userData.email,
       password: hashedPassword,
-      createdAt: new Date(),
-      isActive: true,
       role: userData.role || "user",
-      lastLogin: null,
-      resetPasswordToken: null,
-      resetPasswordExpires: null,
-    };
+    });
 
-    const result = await users.insertOne(user);
-    return result;
+    return await user.save();
   },
 
   async findUserByEmail(email) {
-    const db = await connectDB();
-    const users = db.collection("users");
-    return await users.findOne({ email });
+    return await User.findOne({ email });
   },
 
   async findUserById(id) {
-    const db = await connectDB();
-    const users = db.collection("users");
-    return await users.findOne({ _id: id });
+    return await User.findById(id);
   },
 
   async updateUser(id, updateData) {
-    const db = await connectDB();
-    const users = db.collection("users");
-    return await users.updateOne({ _id: id }, { $set: updateData });
+    return await User.findByIdAndUpdate(id, updateData, { new: true });
   },
 
   async findUserByResetToken(token) {
-    const db = await connectDB();
-    const users = db.collection("users");
-    return await users.findOne({
+    return await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() },
     });
@@ -86,67 +67,36 @@ const userHelpers = {
 // Helper functions for data operations
 const dataHelpers = {
   async createData(data) {
-    const db = await connectDB();
-    const dataCollection = db.collection("data");
-
-    const newData = {
+    const newData = new Data({
       ...data,
       createdAt: new Date(),
       updatedAt: new Date(),
-    };
-
-    return await dataCollection.insertOne(newData);
+    });
+    return await newData.save();
   },
 
   async findData(query = {}) {
-    const db = await connectDB();
-    const dataCollection = db.collection("data");
-    return await dataCollection.find(query).toArray();
+    return await Data.find(query);
   },
 
   async findDataById(id) {
-    const db = await connectDB();
-    const dataCollection = db.collection("data");
-    return await dataCollection.findOne({ _id: id });
+    return await Data.findById(id);
   },
 
   async updateData(id, updateData) {
-    const db = await connectDB();
-    const dataCollection = db.collection("data");
-    return await dataCollection.updateOne(
-      { _id: id },
+    return await Data.findByIdAndUpdate(
+      id,
       {
-        $set: {
-          ...updateData,
-          updatedAt: new Date(),
-        },
-      }
+        ...updateData,
+        updatedAt: new Date(),
+      },
+      { new: true }
     );
   },
 
   async deleteData(id) {
-    const db = await connectDB();
-    const dataCollection = db.collection("data");
-    return await dataCollection.deleteOne({ _id: id });
+    return await Data.findByIdAndDelete(id);
   },
 };
 
-// Initialize collections with indexes
-async function initializeCollections() {
-  const db = await connectDB();
-
-  // Users collection indexes
-  const users = db.collection("users");
-  await users.createIndex({ email: 1 }, { unique: true });
-  await users.createIndex({ resetPasswordToken: 1 });
-
-  // Data collection indexes
-  const data = db.collection("data");
-  await data.createIndex({ createdAt: 1 });
-  await data.createIndex({ updatedAt: 1 });
-}
-
-// Initialize collections when the application starts
-initializeCollections().catch(console.error);
-
-module.exports = { connectDB, userHelpers, dataHelpers };
+module.exports = { userHelpers, dataHelpers };

@@ -18,8 +18,6 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 
 // MongoDB connection options
 const mongooseOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
   connectTimeoutMS: 10000,
@@ -116,7 +114,7 @@ app.use(addUserRoute);
 app.use("/auth", authRoutes);
 app.use("/", profileRoutes);
 
-// Connect to MongoDB
+// Connect to MongoDB and start server
 mongoose
   .connect(MONGODB_URI, mongooseOptions)
   .then(() => {
@@ -127,10 +125,9 @@ mongoose
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
-    // Don't exit the process, let the application handle the error
   });
 
-// Handle MongoDB connection errors
+// Handle MongoDB connection events
 mongoose.connection.on("error", (err) => {
   console.error("MongoDB connection error:", err);
 });

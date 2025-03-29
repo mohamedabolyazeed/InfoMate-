@@ -2,9 +2,16 @@ const { MongoClient } = require("mongodb");
 const bcrypt = require("bcryptjs");
 
 const uri =
+  process.env.MONGODB_URI ||
   "mongodb+srv://mohamedaboelyazeed920:H1iPPlJG9GeOzcwN@cluster0.lbwsy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
-const client = new MongoClient(uri);
+const client = new MongoClient(uri, {
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+  connectTimeoutMS: 10000, // Give up initial connection after 10s
+  maxPoolSize: 10,
+  minPoolSize: 5,
+});
 
 async function connectDB() {
   try {
@@ -13,7 +20,8 @@ async function connectDB() {
     return client.db("InfoMate");
   } catch (error) {
     console.error("MongoDB connection error:", error);
-    process.exit(1);
+    // Don't exit the process, let the application handle the error
+    throw error;
   }
 }
 
@@ -33,10 +41,10 @@ const userHelpers = {
       password: hashedPassword,
       createdAt: new Date(),
       isActive: true,
-      role: userData.role || 'user',
+      role: userData.role || "user",
       lastLogin: null,
       resetPasswordToken: null,
-      resetPasswordExpires: null
+      resetPasswordExpires: null,
     };
 
     const result = await users.insertOne(user);
@@ -58,10 +66,7 @@ const userHelpers = {
   async updateUser(id, updateData) {
     const db = await connectDB();
     const users = db.collection("users");
-    return await users.updateOne(
-      { _id: id },
-      { $set: updateData }
-    );
+    return await users.updateOne({ _id: id }, { $set: updateData });
   },
 
   async findUserByResetToken(token) {
@@ -69,13 +74,13 @@ const userHelpers = {
     const users = db.collection("users");
     return await users.findOne({
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
+      resetPasswordExpires: { $gt: Date.now() },
     });
   },
 
   async comparePassword(password, hashedPassword) {
     return await bcrypt.compare(password, hashedPassword);
-  }
+  },
 };
 
 // Helper functions for data operations
@@ -83,11 +88,11 @@ const dataHelpers = {
   async createData(data) {
     const db = await connectDB();
     const dataCollection = db.collection("data");
-    
+
     const newData = {
       ...data,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     return await dataCollection.insertOne(newData);
@@ -110,11 +115,11 @@ const dataHelpers = {
     const dataCollection = db.collection("data");
     return await dataCollection.updateOne(
       { _id: id },
-      { 
+      {
         $set: {
           ...updateData,
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       }
     );
   },
@@ -123,18 +128,18 @@ const dataHelpers = {
     const db = await connectDB();
     const dataCollection = db.collection("data");
     return await dataCollection.deleteOne({ _id: id });
-  }
+  },
 };
 
 // Initialize collections with indexes
 async function initializeCollections() {
   const db = await connectDB();
-  
+
   // Users collection indexes
   const users = db.collection("users");
   await users.createIndex({ email: 1 }, { unique: true });
   await users.createIndex({ resetPasswordToken: 1 });
-  
+
   // Data collection indexes
   const data = db.collection("data");
   await data.createIndex({ createdAt: 1 });

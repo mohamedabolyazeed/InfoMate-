@@ -16,6 +16,19 @@ const SESSION_SECRET =
   "your-super-secret-key-change-this-in-production";
 const NODE_ENV = process.env.NODE_ENV || "development";
 
+// MongoDB connection options
+const mongooseOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+  connectTimeoutMS: 10000,
+  maxPoolSize: 10,
+  minPoolSize: 5,
+  retryWrites: true,
+  w: "majority",
+};
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -103,15 +116,9 @@ app.use(addUserRoute);
 app.use("/auth", authRoutes);
 app.use("/", profileRoutes);
 
-// MongoDB connection
+// Connect to MongoDB
 mongoose
-  .connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 5000,
-    socketTimeoutMS: 45000,
-    heartbeatFrequencyMS: 2000,
-    maxPoolSize: 10,
-    minPoolSize: 5,
-  })
+  .connect(MONGODB_URI, mongooseOptions)
   .then(() => {
     console.log("Connected to MongoDB");
     app.listen(port, () => {
@@ -120,8 +127,17 @@ mongoose
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
-    process.exit(1);
+    // Don't exit the process, let the application handle the error
   });
+
+// Handle MongoDB connection errors
+mongoose.connection.on("error", (err) => {
+  console.error("MongoDB connection error:", err);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.log("MongoDB disconnected");
+});
 
 /*
   PORT=3001

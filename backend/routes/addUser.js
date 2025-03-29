@@ -5,8 +5,8 @@ const userController = require("../controllers/userController");
 const auth = require("../middleware/auth");
 var moment = require("moment");
 
-router.get("/user/add.html", auth, userController.user_add_get);
+router.get("/user/add", auth, userController.user_add_get);
 // POST Request
-router.post("/user/add.html", auth, userController.user_post);
+router.post("/user/add", auth, userController.user_post);
 
 module.exports = router;

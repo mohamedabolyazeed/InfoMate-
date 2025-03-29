@@ -9,7 +9,7 @@ const user_index_get = (req, res) => {
   }
 
   // Only show data for the logged-in user
-  User.find({ userId: req.session.user.id })
+  User.find({ userId: req.session.user._id })
     .then((result) => {
       res.render("index", { arr: result, moment: moment });
     })
@@ -118,7 +118,7 @@ const user_post = (req, res) => {
   // Add the user's ID to the new data
   const newData = {
     ...req.body,
-    userId: req.session.user.id,
+    userId: req.session.user._id || req.session.user.id,
   };
 
   // Log the data being sent

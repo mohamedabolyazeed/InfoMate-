@@ -22,7 +22,7 @@ const user_index_get = (req, res) => {
 
 const user_edit_get = (req, res) => {
   // Check if the user owns this data
-  User.findOne({ _id: req.params.id, userId: req.session.user.id })
+  User.findOne({ _id: req.params.id, userId: req.session.user._id })
     .then((result) => {
       if (!result) {
         req.flash("error_msg", "You do not have permission to edit this data");
@@ -37,7 +37,7 @@ const user_edit_get = (req, res) => {
 
 const user_view_get = (req, res) => {
   // Check if the user owns this data
-  User.findOne({ _id: req.params.id, userId: req.session.user.id })
+  User.findOne({ _id: req.params.id, userId: req.session.user._id })
     .then((result) => {
       if (!result) {
         req.flash("error_msg", "You do not have permission to view this data");
@@ -55,7 +55,7 @@ const user_search_post = (req, res) => {
 
   // Only search within the user's own data
   User.find({
-    userId: req.session.user.id,
+    userId: req.session.user._id,
     $or: [{ fireName: searchText }, { lastName: searchText }],
   })
     .then((result) => {
@@ -68,7 +68,7 @@ const user_search_post = (req, res) => {
 
 const user_delete = (req, res) => {
   // Only allow deletion of user's own data
-  User.deleteOne({ _id: req.params.id, userId: req.session.user.id })
+  User.deleteOne({ _id: req.params.id, userId: req.session.user._id })
     .then((result) => {
       if (result.deletedCount === 0) {
         req.flash(
@@ -87,7 +87,7 @@ const user_delete = (req, res) => {
 
 const user_put = (req, res) => {
   // Only allow updating user's own data
-  User.updateOne({ _id: req.params.id, userId: req.session.user.id }, req.body)
+  User.updateOne({ _id: req.params.id, userId: req.session.user._id }, req.body)
     .then((result) => {
       if (result.matchedCount === 0) {
         req.flash(

@@ -5,13 +5,10 @@ const Data = require("../models/Data");
 // Helper functions for user operations
 const userHelpers = {
   async createUser(userData) {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(userData.password, salt);
-
     const user = new User({
       name: userData.name,
       email: userData.email,
-      password: hashedPassword,
+      password: userData.password,
       role: userData.role || "user",
     });
 
@@ -38,7 +35,12 @@ const userHelpers = {
   },
 
   async comparePassword(password, hashedPassword) {
-    return await bcrypt.compare(password, hashedPassword);
+    console.log("Comparing passwords in userHelpers");
+    console.log("Input password length:", password.length);
+    console.log("Hashed password length:", hashedPassword.length);
+    const result = await bcrypt.compare(password, hashedPassword);
+    console.log("Password comparison result:", result);
+    return result;
   },
 };
 

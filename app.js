@@ -44,19 +44,22 @@ app.use(
     cookie: {
       secure: NODE_ENV === "production",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
     },
+    name: "sessionId",
+    store: new session.MemoryStore(), // Use memory store for development
   })
 );
 
-// Flash messages
+// Flash messages middleware
 app.use(flash());
 
-// Global variables middleware
+// Global variables for flash messages
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash("success_msg");
   res.locals.error_msg = req.flash("error_msg");
   res.locals.error = req.flash("error");
-  res.locals.user = req.session.user;
+  res.locals.user = req.session.user || null;
   next();
 });
 

@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 // Dashboard
 exports.getDashboard = async (req, res) => {
   try {
-    const user = await userHelpers.findUserById(req.session.user.id);
+    const user = await userHelpers.findUserById(req.session.user._id);
     if (!user) {
       req.flash("error_msg", "User not found");
       return res.redirect("/signin");
@@ -53,15 +53,16 @@ exports.signup = async (req, res) => {
     const result = await userHelpers.createUser({ name, email, password });
 
     // Create JWT token
-    const token = jwt.sign({ userId: result.insertedId }, JWT_SECRET, {
+    const token = jwt.sign({ userId: result._id }, JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    // Set user in session
+    // Set user in session with consistent format
     req.session.user = {
-      id: result.insertedId,
+      _id: result._id.toString(),
       name,
       email,
+      profilePhoto: null, // Add default profile photo
     };
 
     req.flash(
@@ -80,17 +81,25 @@ exports.signup = async (req, res) => {
 exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("Signin attempt for email:", email);
 
     // Check if user exists
     const user = await userHelpers.findUserByEmail(email);
+    console.log("User found:", user ? "Yes" : "No");
+
     if (!user || !user.isActive) {
+      console.log("User not found or inactive");
       req.flash("error_msg", "Invalid credentials or account is inactive");
       return res.redirect("/signin");
     }
 
     // Check password
+    console.log("Comparing passwords...");
     const isMatch = await userHelpers.comparePassword(password, user.password);
+    console.log("Password match:", isMatch);
+
     if (!isMatch) {
+      console.log("Password mismatch");
       req.flash("error_msg", "Invalid credentials");
       return res.redirect("/signin");
     }
@@ -100,12 +109,14 @@ exports.signin = async (req, res) => {
 
     // Set user in session
     req.session.user = {
-      id: user._id,
+      _id: user._id.toString(),
       name: user.name,
       email: user.email,
+      profilePhoto: user.profilePhoto,
       role: user.role,
     };
 
+    console.log("Signin successful, setting session:", req.session.user);
     req.flash("success_msg", "Welcome back!");
     res.redirect("/");
   } catch (error) {

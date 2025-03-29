@@ -5,12 +5,21 @@ const auth = async (req, res, next) => {
   try {
     // Check if user is logged in via session
     if (req.session.user) {
-      const user = await User.findById(req.session.user.id);
+      const user = await User.findById(
+        req.session.user._id || req.session.user.id
+      );
       if (!user || !user.isActive) {
         req.session.destroy();
         req.flash("error_msg", "Your account is inactive or has been deleted");
         return res.redirect("/signin");
       }
+      // Update session with consistent format
+      req.session.user = {
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        profilePhoto: user.profilePhoto,
+      };
       req.user = user;
       return next();
     }
@@ -34,11 +43,12 @@ const auth = async (req, res, next) => {
       return res.redirect("/signin");
     }
 
-    // Set user in session with the correct ID format
+    // Set user in session with consistent format
     req.session.user = {
-      id: user._id.toString(), // Convert ObjectId to string
+      _id: user._id.toString(),
       name: user.name,
       email: user.email,
+      profilePhoto: user.profilePhoto,
     };
 
     req.user = user;

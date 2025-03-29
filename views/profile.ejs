@@ -3,101 +3,254 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Profile - InfoMate</title>
+    <title>Profile Settings | InfoMate</title>
+    <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <!-- Bootstrap Icons -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
     />
     <style>
-      .profile-photo {
+      :root {
+        --dark-bg: #212529;
+        --darker-bg: #1a1d20;
+        --border-color: #2c3034;
+        --text-color: #e9ecef;
+        --text-muted: #6c757d;
+        --primary-color: #0d6efd;
+        --primary-hover: #0b5ed7;
+      }
+
+      body {
+        background-color: var(--dark-bg);
+        color: var(--text-color);
+      }
+
+      .profile-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+
+      .profile-card {
+        background-color: var(--darker-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .form-control {
+        background-color: var(--dark-bg);
+        border-color: var(--border-color);
+        color: var(--text-color);
+      }
+
+      .form-control:focus {
+        background-color: var(--dark-bg);
+        border-color: var(--primary-color);
+        color: var(--text-color);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      }
+
+      .form-label {
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+      }
+
+      .profile-picture {
         width: 150px;
         height: 150px;
-        object-fit: cover;
         border-radius: 50%;
-        margin-bottom: 20px;
+        object-fit: cover;
+        border: 3px solid var(--primary-color);
+      }
+
+      .camera-icon {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background-color: var(--primary-color);
+        padding: 0.5rem;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .camera-icon:hover {
+        background-color: var(--primary-hover);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        padding: 0.75rem 2rem;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--primary-hover);
+        border-color: var(--primary-hover);
+      }
+
+      .section-title {
+        color: var(--text-color);
+        font-size: 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .text-muted {
+        color: var(--text-muted) !important;
       }
     </style>
   </head>
   <body>
-    <div class="container mt-5">
-      <div class="row justify-content-center">
-        <div class="col-md-8">
-          <div class="card">
-            <div class="card-header">
-              <h3 class="text-center">Profile</h3>
+    <div class="profile-container">
+      <div class="profile-card">
+        <!-- Profile Header -->
+        <div class="text-center mb-4">
+          <h2 class="mb-2">Profile Settings</h2>
+          <p class="text-muted">Manage your account settings and preferences</p>
+        </div>
+
+        <!-- Profile Picture Section -->
+        <div class="profile-card mb-4">
+          <div class="text-center">
+            <div class="position-relative d-inline-block">
+              <img
+                src="<%= user.profilePhoto || '/img/default-avatar.png' %>"
+                alt="Profile Picture"
+                class="profile-picture"
+                onerror="this.src='/img/default-avatar.png'"
+              />
+              <label for="profile-upload" class="camera-icon">
+                <i class="bi bi-camera-fill text-white"></i>
+              </label>
             </div>
-            <div class="card-body">
-              <div class="text-center mb-4">
-                <img
-                  src="<%= user.profilePhoto %>"
-                  alt="Profile Photo"
-                  class="profile-photo"
-                />
-                <form
-                  action="/profile/photo"
-                  method="POST"
-                  enctype="multipart/form-data"
-                  class="mt-3"
-                >
-                  <div class="mb-3">
-                    <input
-                      type="file"
-                      class="form-control"
-                      name="profilePhoto"
-                      accept="image/*"
-                      required
-                    />
-                  </div>
-                  <button type="submit" class="btn btn-primary">
-                    Update Photo
-                  </button>
-                </form>
+            <form
+              action="/profile/picture"
+              method="POST"
+              enctype="multipart/form-data"
+              id="profile-picture-form"
+            >
+              <input
+                type="file"
+                id="profile-upload"
+                name="profilePicture"
+                accept="image/*"
+                class="d-none"
+                onchange="document.getElementById('profile-picture-form').submit()"
+              />
+            </form>
+            <p class="text-muted small mt-2">
+              Click the camera icon to update your profile picture
+            </p>
+          </div>
+        </div>
+
+        <!-- Profile Information Form -->
+        <form action="/profile/update" method="POST">
+          <div class="profile-card">
+            <h3 class="section-title">Personal Information</h3>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="form-label">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value="<%= user.name %>"
+                    class="form-control"
+                    required
+                    minlength="2"
+                  />
+                </div>
               </div>
-              <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  value="<%= user.name %>"
-                  readonly
-                />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input
-                  type="email"
-                  class="form-control"
-                  value="<%= user.email %>"
-                  readonly
-                />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Member Since</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  value="<%= new Date(user.createdAt).toLocaleDateString() %>"
-                  readonly
-                />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Last Login</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  value="<%= user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never' %>"
-                  readonly
-                />
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value="<%= user.email %>"
+                    class="form-control"
+                    required
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+
+          <!-- Password Change Section -->
+          <div class="profile-card">
+            <h3 class="section-title">Change Password</h3>
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="form-group">
+                  <label class="form-label">Current Password</label>
+                  <input
+                    type="password"
+                    name="currentPassword"
+                    class="form-control"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="form-label">New Password</label>
+                  <input
+                    type="password"
+                    name="newPassword"
+                    class="form-control"
+                    minlength="6"
+                  />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label class="form-label">Confirm New Password</label>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    class="form-control"
+                    minlength="6"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="text-end mt-4">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check2-circle me-2"></i>Save Changes
+            </button>
+          </div>
+        </form>
       </div>
     </div>
+
+    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Image Preview Script -->
+    <script>
+      document
+        .getElementById("profile-upload")
+        .addEventListener("change", function (e) {
+          if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              document
+                .querySelector(".profile-picture")
+                .setAttribute("src", e.target.result);
+            };
+            reader.readAsDataURL(e.target.files[0]);
+          }
+        });
+    </script>
   </body>
 </html>

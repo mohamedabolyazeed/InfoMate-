@@ -1,7 +1,8 @@
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs").promises;
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 
 // Configure multer for file upload
 const storage = multer.diskStorage({
@@ -36,58 +37,139 @@ const upload = multer({
 
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.session.user.id);
+    const user = await User.findById(req.session.user._id);
     if (!user) {
       req.flash("error_msg", "User not found");
       return res.redirect("/");
     }
-    res.render("profile", { user });
+    res.render("profile", {
+      user,
+      messages: {
+        success_msg: req.flash("success_msg"),
+        error_msg: req.flash("error_msg"),
+      },
+    });
   } catch (error) {
-    console.error("Profile error:", error);
+    console.error("Error in getProfile:", error);
     req.flash("error_msg", "Error loading profile");
     res.redirect("/");
   }
 };
 
-exports.updateProfilePhoto = [
-  upload.single("profilePhoto"),
-  async (req, res) => {
-    try {
-      if (!req.file) {
-        req.flash("error_msg", "No file uploaded");
+exports.updateProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      req.flash("error_msg", "Please select an image to upload");
+      return res.redirect("/profile");
+    }
+
+    const user = await User.findById(req.session.user._id);
+    if (!user) {
+      req.flash("error_msg", "User not found");
+      return res.redirect("/profile");
+    }
+
+    // Delete old profile picture if it exists and is not the default
+    if (
+      user.profilePhoto &&
+      user.profilePhoto !== "/img/default-avatar.png" &&
+      fs.existsSync(path.join(process.cwd(), "public", user.profilePhoto))
+    ) {
+      await fs.unlink(path.join(process.cwd(), "public", user.profilePhoto));
+    }
+
+    // Update user's profile picture path
+    const profilePhotoPath = `/uploads/profiles/${req.file.filename}`;
+    user.profilePhoto = profilePhotoPath;
+    await user.save();
+
+    // Update session
+    req.session.user = {
+      ...req.session.user,
+      profilePhoto: profilePhotoPath,
+    };
+
+    req.flash("success_msg", "Profile picture updated successfully");
+    res.redirect("/profile");
+  } catch (error) {
+    console.error("Error in updateProfilePicture:", error);
+    req.flash("error_msg", "Error updating profile picture");
+    res.redirect("/profile");
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, email, currentPassword, newPassword, confirmPassword } =
+      req.body;
+    const user = await User.findById(req.session.user._id);
+
+    if (!user) {
+      req.flash("error_msg", "User not found");
+      return res.redirect("/profile");
+    }
+
+    // Validate email format
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(email)) {
+      req.flash("error_msg", "Please enter a valid email address");
+      return res.redirect("/profile");
+    }
+
+    // Check if email is already taken by another user
+    const existingUser = await User.findOne({ email, _id: { $ne: user._id } });
+    if (existingUser) {
+      req.flash("error_msg", "Email is already in use");
+      return res.redirect("/profile");
+    }
+
+    // Update basic info
+    user.name = name;
+    user.email = email;
+
+    // Handle password update if provided
+    if (currentPassword && newPassword) {
+      if (newPassword !== confirmPassword) {
+        req.flash("error_msg", "New passwords do not match");
         return res.redirect("/profile");
       }
 
-      const user = await User.findById(req.session.user.id);
-      if (!user) {
-        req.flash("error_msg", "User not found");
-        return res.redirect("/");
+      if (newPassword.length < 6) {
+        req.flash("error_msg", "Password must be at least 6 characters long");
+        return res.redirect("/profile");
       }
 
-      // Delete old profile photo if it exists
-      if (
-        user.profilePhoto &&
-        user.profilePhoto !== "/img/default-avatar.png"
-      ) {
-        const oldPhotoPath = path.join("public", user.profilePhoto);
-        if (fs.existsSync(oldPhotoPath)) {
-          fs.unlinkSync(oldPhotoPath);
-        }
+      // Verify current password
+      const isMatch = await user.comparePassword(currentPassword);
+      if (!isMatch) {
+        req.flash("error_msg", "Current password is incorrect");
+        return res.redirect("/profile");
       }
 
-      // Update user's profile photo path
-      user.profilePhoto = "/uploads/profiles/" + req.file.filename;
-      await user.save();
-
-      // Update session
-      req.session.user.profilePhoto = user.profilePhoto;
-
-      req.flash("success_msg", "Profile photo updated successfully");
-      res.redirect("/profile");
-    } catch (error) {
-      console.error("Profile photo update error:", error);
-      req.flash("error_msg", "Error updating profile photo");
-      res.redirect("/profile");
+      // Set new password - let the pre-save middleware handle the hashing
+      user.password = newPassword;
     }
-  },
-];
+
+    await user.save();
+
+    // Update session and clear any existing tokens
+    req.session.user = {
+      _id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      profilePhoto: user.profilePhoto,
+    };
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+      }
+    });
+
+    req.flash("success_msg", "Profile updated successfully");
+    res.redirect("/profile");
+  } catch (error) {
+    console.error("Error in updateProfile:", error);
+    req.flash("error_msg", "Error updating profile");
+    res.redirect("/profile");
+  }
+};

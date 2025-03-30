@@ -1,6 +1,7 @@
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs").promises;
+const fs = require("fs"); // Add this for synchronous methods
+const fsPromises = require("fs").promises; // Rename for clarity
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
@@ -63,6 +64,8 @@ exports.updateProfilePicture = async (req, res) => {
       return res.redirect("/profile");
     }
 
+    console.log("Uploaded file:", req.file); // Debugging log
+
     const user = await User.findById(req.session.user._id);
     if (!user) {
       req.flash("error_msg", "User not found");
@@ -72,16 +75,23 @@ exports.updateProfilePicture = async (req, res) => {
     // Delete old profile picture if it exists and is not the default
     if (
       user.profilePhoto &&
-      user.profilePhoto !== "/img/default-avatar.png" &&
-      fs.existsSync(path.join(process.cwd(), "public", user.profilePhoto))
+      user.profilePhoto !== "/img/default-avatar.png"
     ) {
-      await fs.unlink(path.join(process.cwd(), "public", user.profilePhoto));
+      const oldPhotoPath = path.join(process.cwd(), "public", user.profilePhoto);
+      try {
+        await fsPromises.access(oldPhotoPath); // Check if file exists
+        await fsPromises.unlink(oldPhotoPath); // Delete the file
+      } catch (err) {
+        console.warn("Old profile picture not found or could not be deleted:", err.message);
+      }
     }
 
     // Update user's profile picture path
     const profilePhotoPath = `/uploads/profiles/${req.file.filename}`;
     user.profilePhoto = profilePhotoPath;
     await user.save();
+
+    console.log("Updated user profile photo path:", profilePhotoPath); // Debugging log
 
     // Update session
     req.session.user = {

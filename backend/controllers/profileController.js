@@ -89,15 +89,19 @@ exports.updateProfilePicture = async (req, res) => {
     // Update user's profile picture path
     const profilePhotoPath = `/uploads/profiles/${req.file.filename}`;
     user.profilePhoto = profilePhotoPath;
+
+    // Save the updated user object to the database
     await user.save();
 
     console.log("Updated user profile photo path:", profilePhotoPath); // Debugging log
 
-    // Update session
-    req.session.user = {
-      ...req.session.user,
-      profilePhoto: profilePhotoPath,
-    };
+    // Update session with the new profile photo
+    req.session.user.profilePhoto = profilePhotoPath;
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+      }
+    });
 
     req.flash("success_msg", "Profile picture updated successfully");
     res.redirect("/profile");

@@ -51,9 +51,11 @@ function checkFileType(file, cb) {
 const handleUpload = (req, res, next) => {
   upload(req, res, function (err) {
     if (err instanceof multer.MulterError) {
+      console.error("Multer error:", err); // Debugging log
       req.flash("error_msg", `Upload error: ${err.message}`);
       return res.redirect("/profile");
     } else if (err) {
+      console.error("File upload error:", err); // Debugging log
       req.flash("error_msg", err.message || "Error uploading file");
       return res.redirect("/profile");
     }

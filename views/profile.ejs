@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="auto">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profile Settings | InfoMate</title>
-    <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="/css/dark-mode.css" />
+    <link rel="stylesheet" href="/css/dark-light.css" />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
     />
+    <!-- Bootstrap Bundle with Popper (required for dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Dark mode script -->
+    <script src="/js/color-modes.js"></script>
     <style>
       :root {
         --dark-bg: #212529;
@@ -24,18 +24,15 @@
         --primary-color: #0d6efd;
         --primary-hover: #0b5ed7;
       }
-
       body {
         background-color: var(--dark-bg);
         color: var(--text-color);
       }
-
       .profile-container {
         max-width: 800px;
         margin: 2rem auto;
         padding: 0 1rem;
       }
-
       .profile-card {
         background-color: var(--darker-bg);
         border: 1px solid var(--border-color);
@@ -43,25 +40,21 @@
         padding: 2rem;
         margin-bottom: 1.5rem;
       }
-
       .form-control {
         background-color: var(--dark-bg);
         border-color: var(--border-color);
         color: var(--text-color);
       }
-
       .form-control:focus {
         background-color: var(--dark-bg);
         border-color: var(--primary-color);
         color: var(--text-color);
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
       }
-
       .form-label {
         color: var(--text-color);
         margin-bottom: 0.5rem;
       }
-
       .profile-picture {
         width: 150px;
         height: 150px;
@@ -69,7 +62,6 @@
         object-fit: cover;
         border: 3px solid var(--primary-color);
       }
-
       .camera-icon {
         position: absolute;
         bottom: 0;
@@ -80,34 +72,30 @@
         cursor: pointer;
         transition: background-color 0.2s;
       }
-
       .camera-icon:hover {
         background-color: var(--primary-hover);
       }
-
       .btn-primary {
         background-color: var(--primary-color);
         border-color: var(--primary-color);
         padding: 0.75rem 2rem;
       }
-
       .btn-primary:hover {
         background-color: var(--primary-hover);
         border-color: var(--primary-hover);
       }
-
       .section-title {
         color: var(--text-color);
         font-size: 1.25rem;
         margin-bottom: 1.5rem;
       }
-
       .text-muted {
         color: var(--text-muted) !important;
       }
     </style>
   </head>
   <body>
+    <%- include('./Components/dark-light.ejs') %>
     <div class="profile-container">
       <div class="profile-card">
         <!-- Profile Header -->
@@ -115,13 +103,12 @@
           <h2 class="mb-2">Profile Settings</h2>
           <p class="text-muted">Manage your account settings and preferences</p>
         </div>
-
         <!-- Profile Picture Section -->
         <div class="profile-card mb-4">
           <div class="text-center">
             <div class="position-relative d-inline-block">
               <img
-                src="<%= user.profilePhoto || '/img/default-avatar.png' %>"
+                src="<%= user.profilePhoto || '/img/default-avatar.png' %>?<%= Date.now() %>"
                 alt="Profile Picture"
                 class="profile-picture"
                 onerror="this.src='/img/default-avatar.png'"
@@ -150,7 +137,6 @@
             </p>
           </div>
         </div>
-
         <!-- Profile Information Form -->
         <form action="/profile/update" method="POST">
           <div class="profile-card">
@@ -183,7 +169,6 @@
               </div>
             </div>
           </div>
-
           <!-- Password Change Section -->
           <div class="profile-card">
             <h3 class="section-title">Change Password</h3>
@@ -222,7 +207,6 @@
               </div>
             </div>
           </div>
-
           <!-- Submit Button -->
           <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary">
@@ -232,10 +216,6 @@
         </form>
       </div>
     </div>
-
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <!-- Image Preview Script -->
     <script>
       document

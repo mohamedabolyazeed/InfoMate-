@@ -1,4 +1,14 @@
 const express = require("express");
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'public/uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const app = express();
 const port = process.env.PORT || 3001;
 const mongoose = require("mongoose");
@@ -18,7 +28,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 
 // MongoDB connection options
 const mongooseOptions = {
-  serverSelectionTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 5000, 
   socketTimeoutMS: 45000,
   connectTimeoutMS: 10000,
   maxPoolSize: 10,
@@ -30,7 +40,8 @@ const mongooseOptions = {
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static('public')); // This line should be present and other static middleware removed
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(expressLayouts);
 app.set("view engine", "ejs");
 app.set("layout", "layouts/main");
